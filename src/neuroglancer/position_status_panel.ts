@@ -113,6 +113,7 @@ export class PositionStatusPanel extends RefCounted {
     if (position.getVoxelCoordinates(voxelPosition)) {
       // console.log("got new position: " + voxelPosition);
       let positionElements = this.positionElements;
+
       for (let i = 0; i < 3; ++i) {
         let value = voxelPosition[i];
         positionElements[i].value = '' + Math.floor(value);
