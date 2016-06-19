@@ -196,8 +196,10 @@ export function getShardedVolume(baseUrls: string[], path: string) {
   if (existingResult !== undefined) {
     return existingResult;
   }
-  let promise = sendHttpRequest(openShardedHttpRequest(baseUrls, path + '/info'), 'json')
-                    .then(response => new MultiscaleVolumeChunkSource(baseUrls, path, response));
+  let promise = sendHttpRequest(openShardedHttpRequest(['http://localhost:1337/'], ''), 'json')
+    .then(response => new MultiscaleVolumeChunkSource(baseUrls, path, response));
+  // let promise = sendHttpRequest(openShardedHttpRequest(baseUrls, path + '/info'), 'json')
+  //                   .then(response => new MultiscaleVolumeChunkSource(baseUrls, path, response));
   existingVolumes.set(fullKey, promise);
   return promise;
 }

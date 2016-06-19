@@ -47,16 +47,19 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
 
   download(chunk: VolumeChunk) {
     let path: string;
+    let newPath: string;
     {
       // chunkPosition must not be captured, since it will be invalidated by the next call to
       // computeChunkBounds.
       let chunkPosition = this.computeChunkBounds(chunk);
       let {chunkDataSize} = chunk;
+      newPath = `data/?datapath=/Users/Omar/Documents/btfly_pics/&start=${chunkPosition[0]},${chunkPosition[1]},${chunkPosition[2]}&size=${chunkDataSize[0]},${chunkDataSize[1]},${chunkDataSize[2]}&output=jpg`;
       path =
           `${this.path}/${chunkPosition[0]}-${chunkPosition[0] + chunkDataSize[0]}_${chunkPosition[1]}-${chunkPosition[1] + chunkDataSize[1]}_${chunkPosition[2]}-${chunkPosition[2] + chunkDataSize[2]}`;
     }
+    this.baseUrls = ['http://localhost:2001/']
     handleChunkDownloadPromise(
-        chunk, sendHttpRequest(openShardedHttpRequest(this.baseUrls, path), 'arraybuffer'),
+        chunk, sendHttpRequest(openShardedHttpRequest(this.baseUrls, newPath), 'arraybuffer'),
         this.chunkDecoder);
   }
   toString () {

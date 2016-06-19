@@ -70,6 +70,8 @@ export function openShardedHttpRequest(baseUrls: string|string[], path: string, 
   const url = pickShard(baseUrls, path);
   (<any>xhr)[METHOD_SYMBOL] = method;
   (<any>xhr)[URL_SYMBOL] = url;
+  console.log("GET:");
+  console.log(url);
   xhr.open(method, url);
   return xhr;
 }
