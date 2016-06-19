@@ -31,33 +31,54 @@ chunkDecoders.set(VolumeChunkEncoding.RAW, decodeRawChunk);
 chunkDecoders.set(VolumeChunkEncoding.JPEG, decodeJpegChunk);
 chunkDecoders.set(VolumeChunkEncoding.COMPRESSED_SEGMENTATION, decodeCompressedSegmentationChunk);
 
+function getDataPath (baseUrls: string[]) {
+  let pickedUrl = baseUrls[0].split('/');
+  let dataPath: string;
+  let basePath: string;
+
+  basePath = "";
+  dataPath = "";
+
+  pickedUrl.forEach(function(piece: string, index: number){
+    if (index >= 3) {
+      dataPath += piece + '/';
+    } else {
+      basePath += piece + '/';
+    }
+  })
+  debugger;
+  return {dataPath: dataPath, baseUrl: basePath};
+}
+
 class VolumeChunkSource extends GenericVolumeChunkSource {
   baseUrls: string[];
   path: string;
   encoding: VolumeChunkEncoding;
   chunkDecoder: ChunkDecoder;
+  dataPath: string;
 
   constructor(rpc: RPC, options: any) {
     super(rpc, options);
-    this.baseUrls = options['baseUrls'];
+    let pathParts = getDataPath(options['baseUrls'])
+    this.dataPath = pathParts.dataPath;
+    this.baseUrls = [pathParts.baseUrl];
     this.path = options['path'];
     this.encoding = options['encoding'];
     this.chunkDecoder = chunkDecoders.get(this.encoding);
+    debugger;
   }
 
   download(chunk: VolumeChunk) {
-    let path: string;
+
     let newPath: string;
     {
       // chunkPosition must not be captured, since it will be invalidated by the next call to
       // computeChunkBounds.
       let chunkPosition = this.computeChunkBounds(chunk);
       let {chunkDataSize} = chunk;
-      newPath = `data/?datapath=/Users/Omar/Documents/btfly_pics/&start=${chunkPosition[0]},${chunkPosition[1]},${chunkPosition[2]}&size=${chunkDataSize[0]},${chunkDataSize[1]},${chunkDataSize[2]}&output=jpg`;
-      path =
-          `${this.path}/${chunkPosition[0]}-${chunkPosition[0] + chunkDataSize[0]}_${chunkPosition[1]}-${chunkPosition[1] + chunkDataSize[1]}_${chunkPosition[2]}-${chunkPosition[2] + chunkDataSize[2]}`;
+      newPath = `data/?datapath=${this.dataPath}&start=${chunkPosition[0]},${chunkPosition[1]},${chunkPosition[2]}&size=${chunkDataSize[0]},${chunkDataSize[1]},${chunkDataSize[2]}&output=jpg`;
+
     }
-    this.baseUrls = ['http://localhost:2001/']
     handleChunkDownloadPromise(
         chunk, sendHttpRequest(openShardedHttpRequest(this.baseUrls, newPath), 'arraybuffer'),
         this.chunkDecoder);

@@ -107,6 +107,8 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
   }
 
   constructor(public baseUrls: string[], public path: string, private response: any) {
+    debugger;
+
     if (typeof response !== 'object' || Array.isArray(response)) {
       throw new Error('Failed to parse volume metadata.');
     }
@@ -196,8 +198,9 @@ export function getShardedVolume(baseUrls: string[], path: string) {
   if (existingResult !== undefined) {
     return existingResult;
   }
-
-  // Just for info. Use node.js stub.
+  
+  debugger;
+    // Just for info. Use node.js stub.
   let promise = sendHttpRequest(openShardedHttpRequest(['http://localhost:1337/'], ''), 'json')
     .then(response => new MultiscaleVolumeChunkSource(baseUrls, path, response));
   // let promise = sendHttpRequest(openShardedHttpRequest(baseUrls, path + '/info'), 'json')
