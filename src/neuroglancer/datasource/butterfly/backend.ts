@@ -63,10 +63,10 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
         this.chunkDecoder);
   }
   toString () {
-    return `precomputed:volume:${this.baseUrls[0]}/${this.path}`;
+    return `butterfly:volume:${this.baseUrls[0]}/${this.path}`;
   }
 };
-registerSharedObject('precomputed/VolumeChunkSource', VolumeChunkSource);
+registerSharedObject('butterfly/VolumeChunkSource', VolumeChunkSource);
 
 export function decodeManifestChunk(chunk: ManifestChunk, response: any) {
   return decodeJsonManifestChunk(chunk, response, 'fragments');
@@ -105,7 +105,7 @@ export class MeshSource extends GenericMeshSource {
         decodeFragmentChunk);
   }
   toString () {
-    return `precomputed:mesh:${this.baseUrls[0]}/${this.path}`;
+    return `butterfly:mesh:${this.baseUrls[0]}/${this.path}`;
   }
 };
-registerSharedObject('precomputed/MeshSource', MeshSource);
+registerSharedObject('butterfly/MeshSource', MeshSource);

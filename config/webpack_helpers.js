@@ -61,6 +61,8 @@ const DEFAULT_DATA_SOURCES = exports.DEFAULT_DATA_SOURCES = [
   'neuroglancer/datasource/dvid',
   'neuroglancer/datasource/openconnectome',
   'neuroglancer/datasource/precomputed',
+  'neuroglancer/datasource/butterfly',
+
 ];
 
 /**

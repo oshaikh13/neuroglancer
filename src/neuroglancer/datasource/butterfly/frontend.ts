@@ -44,7 +44,7 @@ export class VolumeChunkSource extends GenericVolumeChunkSource {
     public encoding: VolumeChunkEncoding) {
     super(chunkManager, spec);
     this.initializeCounterpart(chunkManager.rpc, {
-      'type': 'precomputed/VolumeChunkSource',
+      'type': 'butterfly/VolumeChunkSource',
       'baseUrls': baseUrls,
       'path': path,
       'encoding': encoding,
@@ -52,7 +52,7 @@ export class VolumeChunkSource extends GenericVolumeChunkSource {
   }
 
   toString () {
-    return `precomputed:volume:${this.baseUrls[0]}/${this.path}`;
+    return `butterfly:volume:${this.baseUrls[0]}/${this.path}`;
   }
 };
 
@@ -171,10 +171,10 @@ export class MeshSource extends GenericMeshSource {
     super(chunkManager);
     this.initializeCounterpart(
         this.chunkManager.rpc,
-        {'type': 'precomputed/MeshSource', 'baseUrls': baseUrls, 'path': path, 'lod': lod});
+        {'type': 'butterfly/MeshSource', 'baseUrls': baseUrls, 'path': path, 'lod': lod});
   }
   toString () {
-    return `precomputed:mesh:${this.baseUrls[0]}/${this.path}`;
+    return `butterfly:mesh:${this.baseUrls[0]}/${this.path}`;
   }
 };
 
@@ -196,6 +196,8 @@ export function getShardedVolume(baseUrls: string[], path: string) {
   if (existingResult !== undefined) {
     return existingResult;
   }
+
+  // Just for info. Use node.js stub.
   let promise = sendHttpRequest(openShardedHttpRequest(['http://localhost:1337/'], ''), 'json')
     .then(response => new MultiscaleVolumeChunkSource(baseUrls, path, response));
   // let promise = sendHttpRequest(openShardedHttpRequest(baseUrls, path + '/info'), 'json')
@@ -209,8 +211,8 @@ export function getVolume(url: string) {
   return getShardedVolume(baseUrls, path);
 }
 
-registerDataSourceFactory('precomputed', {
-  description: 'Precomputed file-backed data source',
+registerDataSourceFactory('butterfly', {
+  description: 'butterfly file-backed data source',
   getVolume: getVolume,
   getMeshSource: getMeshSource,
 });
