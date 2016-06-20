@@ -1,0 +1,33 @@
+{
+  "data_type": "uint8",
+  "num_channels": 1,
+  "scales": [
+    {
+      "chunk_sizes": [
+        [
+          512,
+          512,
+          1
+        ]
+      ],
+      "encoding": "jpeg",
+      "key": "1024_1024_140",
+      "resolution": [
+        128,
+        128,
+        140
+      ],
+      "size": [
+        1024,
+        1024,
+        140
+      ],
+      "voxel_offset": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "type": "image"
+}

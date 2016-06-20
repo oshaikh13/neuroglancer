@@ -1,0 +1,23 @@
+{
+  "name": "neuroglancer",
+  "version": "1.0.0",
+  "description": "minified dist",
+  "main": "info.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node info.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oshaikh13/neuroglancer.git"
+  },
+  "author": "Omar Shaikh <oshaikh13@gmail.com> (http://www.awesomeomar.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oshaikh13/neuroglancer/issues"
+  },
+  "homepage": "https://github.com/oshaikh13/neuroglancer#readme",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}
