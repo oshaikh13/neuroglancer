@@ -45,7 +45,17 @@ function getDataPath (baseUrls: string[]) {
     } else {
       basePath += piece + '/';
     }
-  })
+  });
+
+
+  if (dataPath.charAt(dataPath.length - 1) == '/') {
+    dataPath = dataPath.substring(0, dataPath.length);
+  }
+
+  if (dataPath.charAt(dataPath.length - 1) == '/') {
+    dataPath = dataPath.substring(0, dataPath.length - 1);
+  }
+
   debugger;
   return {dataPath: dataPath, baseUrl: basePath};
 }
@@ -59,7 +69,7 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
 
   constructor(rpc: RPC, options: any) {
     super(rpc, options);
-    let pathParts = getDataPath(options['baseUrls'])
+    let pathParts = getDataPath(options['baseUrls']);
     this.dataPath = pathParts.dataPath;
     this.baseUrls = [pathParts.baseUrl];
     this.path = options['path'];
@@ -77,7 +87,7 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
       let chunkPosition = this.computeChunkBounds(chunk);
       let {chunkDataSize} = chunk;
       newPath = `data/?datapath=${this.dataPath}&start=${chunkPosition[0]},${chunkPosition[1]},${chunkPosition[2]}&size=${chunkDataSize[0]},${chunkDataSize[1]},${chunkDataSize[2]}&output=jpg`;
-
+      debugger;
     }
     handleChunkDownloadPromise(
         chunk, sendHttpRequest(openShardedHttpRequest(this.baseUrls, newPath), 'arraybuffer'),

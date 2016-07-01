@@ -36,6 +36,9 @@ export class LayerDialog extends Overlay {
   submitElement = document.createElement('button');
   namePromptElement = document.createElement('label');
   nameInputElement = document.createElement('input');
+  bflyChunkPrompt = document.createElement('label');
+  bflyChunkInput = document.createElement('input');
+
   volumePromise: Promise<void>|undefined;
   sourceValid: boolean = false;
   nameValid: boolean = true;
@@ -95,6 +98,23 @@ export class LayerDialog extends Overlay {
     nameInputElement.spellcheck = false;
 
     nameInputElement.type = 'text';
+
+
+
+    // Single form element.
+    let bflyForm = document.createElement('form');
+    bflyForm.className = 'bfly-form';
+    this.bflyChunkPrompt.textContent = 'Chunk Size:';
+    this.bflyChunkInput.className = 'add-layer-name';
+    this.bflyChunkInput.autocomplete = 'off';
+    this.bflyChunkInput.spellcheck = false;
+    this.bflyChunkInput.type = 'text';
+
+    bflyForm.appendChild(this.bflyChunkPrompt);
+    bflyForm.appendChild(this.bflyChunkInput);
+    dialogElement.appendChild(bflyForm);
+
+
 
     this.registerEventListener(nameInputElement, 'input', () => { this.validateName(); });
 
