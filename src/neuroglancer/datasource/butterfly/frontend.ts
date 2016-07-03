@@ -38,16 +38,18 @@ serverChunkEncodings.set('raw', VolumeChunkEncoding.RAW);
 serverChunkEncodings.set('jpeg', VolumeChunkEncoding.JPEG);
 serverChunkEncodings.set('compressed_segmentation', VolumeChunkEncoding.COMPRESSED_SEGMENTATION);
 
+
 export class VolumeChunkSource extends GenericVolumeChunkSource {
   constructor(
     chunkManager: ChunkManager, spec: VolumeChunkSpecification, public baseUrls: string[]|string, public path: string,
-    public encoding: VolumeChunkEncoding) {
+    public encoding: VolumeChunkEncoding, public datapath: string) {
     super(chunkManager, spec);
     this.initializeCounterpart(chunkManager.rpc, {
       'type': 'butterfly/VolumeChunkSource',
       'baseUrls': baseUrls,
       'path': path,
       'encoding': encoding,
+      'datapath': datapath
     });
   }
 
@@ -93,6 +95,7 @@ class ScaleInfo {
 
 export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunkSource {
   dataType: DataType;
+  datapath: string;
   numChannels: number;
   volumeType: VolumeType;
   mesh: string|undefined;
@@ -107,8 +110,6 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
   }
 
   constructor(public baseUrls: string[], public path: string, private response: any) {
-    debugger;
-
     if (typeof response !== 'object' || Array.isArray(response)) {
       throw new Error('Failed to parse volume metadata.');
     }
@@ -134,6 +135,9 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
     if (meshStr !== undefined && typeof meshStr !== 'string') {
       throw new Error('Invalid "mesh" field.');
     }
+
+    this.datapath = response['datapath'];
+
     this.mesh = meshStr;
     this.scales = parseArray(response['scales'], x => new ScaleInfo(x));
   }
@@ -162,7 +166,7 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
             return chunkManager.getChunkSource(
                 VolumeChunkSource, cacheKey,
                 () => new VolumeChunkSource(
-                    chunkManager, spec, this.baseUrls, path, scaleInfo.encoding));
+                    chunkManager, spec, this.baseUrls, path, scaleInfo.encoding, this.datapath));
           });
     });
   }
@@ -199,14 +203,51 @@ export function getShardedVolume(baseUrls: string[], path: string) {
     return existingResult;
   }
   
-  debugger; // We have the response (if bfly)
-    // Just for info. Use node.js stub.
-  let promise = sendHttpRequest(openShardedHttpRequest(['http://localhost:1337/'], ''), 'json')
-    .then(response => new MultiscaleVolumeChunkSource(baseUrls, path, response));
-  // let promise = sendHttpRequest(openShardedHttpRequest(baseUrls, path + '/info'), 'json')
-  //                   .then(response => new MultiscaleVolumeChunkSource(baseUrls, path, response));
+  let response = getResponseForm();
+
+  // Dumb promise wrapper
+  let promise = new Promise(function(resolve, reject){
+    resolve(new MultiscaleVolumeChunkSource(baseUrls, path, response));
+  });
+
   existingVolumes.set(fullKey, promise);
   return promise;
+}
+
+function getResponseForm() {
+  // TODO: Default vals
+  // let somevar = getDom || default val
+  // maybe value = undef
+  debugger;
+  let chunkSize = document.getElementsByClassName('bfly-chunksize')[0].value.split('x');
+  let resolution = document.getElementsByClassName('bfly-resolution')[0].value.split('x');
+  let size = document.getElementsByClassName('bfly-size')[0].value.split('x');
+  let offsetsize = document.getElementsByClassName('bfly-offsetsize')[0].value.split('x');
+  let datapath = document.getElementsByClassName('bfly-datapath')[0].value.split('x');
+
+  let emulatedServerResponse = {
+    "datapath": datapath,
+    "data_type": "uint8",
+    "num_channels": 1,
+    "scales": [
+      {
+        "chunk_sizes": [
+          chunkSize
+        ],
+        "encoding": "jpeg",
+        "key": "1024_1024_140",
+        "resolution": resolution,
+        "size": size,
+        "voxel_offset": offsetsize
+      }
+    ],
+    "type": "image"
+  }
+
+  // Hacky. TODO: Don't use window
+  bflyGlobal.datapath = datapath;
+
+  return emulatedServerResponse;
 }
 
 export function getVolume(url: string) {

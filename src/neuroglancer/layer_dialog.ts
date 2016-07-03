@@ -122,10 +122,11 @@ export class LayerDialog extends Overlay {
     
     function editFormGroup(domNodePrompt, domNodeInput, promptString: String) {
       domNodePrompt.textContent = promptString;
-      domNodeInput.className = 'add-layer-name';
+      domNodeInput.className = 'add-layer-name bfly-' + promptString.toLowerCase().replace(" ", "");
       domNodeInput.autocomplete = 'off';
       domNodeInput.spellcheck = false;
       domNodeInput.type = 'text'; 
+
     }
 
     editFormGroup(this.bflyChunkPrompt, this.bflyChunkInput, "Chunk Size");

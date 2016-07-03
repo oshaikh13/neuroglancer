@@ -31,63 +31,35 @@ chunkDecoders.set(VolumeChunkEncoding.RAW, decodeRawChunk);
 chunkDecoders.set(VolumeChunkEncoding.JPEG, decodeJpegChunk);
 chunkDecoders.set(VolumeChunkEncoding.COMPRESSED_SEGMENTATION, decodeCompressedSegmentationChunk);
 
-function getDataPath (baseUrls: string[]) {
-  let pickedUrl = baseUrls[0].split('/');
-  let dataPath: string;
-  let basePath: string;
-
-  basePath = "";
-  dataPath = "";
-
-  pickedUrl.forEach(function(piece: string, index: number){
-    if (index >= 3) {
-      dataPath += piece + '/';
-    } else {
-      basePath += piece + '/';
-    }
-  });
-
-
-  if (dataPath.charAt(dataPath.length - 1) == '/') {
-    dataPath = dataPath.substring(0, dataPath.length);
-  }
-
-  if (dataPath.charAt(dataPath.length - 1) == '/') {
-    dataPath = dataPath.substring(0, dataPath.length - 1);
-  }
-
-  debugger;
-  return {dataPath: dataPath, baseUrl: basePath};
-}
-
 class VolumeChunkSource extends GenericVolumeChunkSource {
   baseUrls: string[];
   path: string;
   encoding: VolumeChunkEncoding;
   chunkDecoder: ChunkDecoder;
-  dataPath: string;
+  datapath: string;
 
   constructor(rpc: RPC, options: any) {
     super(rpc, options);
-    let pathParts = getDataPath(options['baseUrls']);
-    this.dataPath = pathParts.dataPath;
-    this.baseUrls = [pathParts.baseUrl];
+
+    this.baseUrls = options['baseUrls'];
     this.path = options['path'];
     this.encoding = options['encoding'];
     this.chunkDecoder = chunkDecoders.get(this.encoding);
+    this.datapath = options['datapath'];
     debugger;
   }
 
   download(chunk: VolumeChunk) {
 
     let newPath: string;
+    debugger;
     {
       // chunkPosition must not be captured, since it will be invalidated by the next call to
       // computeChunkBounds.
       let chunkPosition = this.computeChunkBounds(chunk);
       let {chunkDataSize} = chunk;
-      newPath = `data/?datapath=${this.dataPath}&start=${chunkPosition[0]},${chunkPosition[1]},${chunkPosition[2]}&size=${chunkDataSize[0]},${chunkDataSize[1]},${chunkDataSize[2]}&output=jpg`;
-      debugger;
+      // Get datapath from global var.
+      newPath = `data/?datapath=${this.datapath[0]}&start=${chunkPosition[0]},${chunkPosition[1]},${chunkPosition[2]}&size=${chunkDataSize[0]},${chunkDataSize[1]},${chunkDataSize[2]}&output=jpg`;
     }
     handleChunkDownloadPromise(
         chunk, sendHttpRequest(openShardedHttpRequest(this.baseUrls, newPath), 'arraybuffer'),
