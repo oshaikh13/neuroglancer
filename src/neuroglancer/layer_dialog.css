@@ -24,6 +24,10 @@
   font-family: monospace;
 }
 
+.bfly-form {
+  display: block;
+}
+
 .add-layer-overlay .dialog-status {
   width: 100%;
   height: 4em;

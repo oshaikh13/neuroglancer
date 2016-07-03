@@ -34,10 +34,24 @@ export class LayerDialog extends Overlay {
 
   sourceInput: AutocompleteTextInput;
   submitElement = document.createElement('button');
+
   namePromptElement = document.createElement('label');
   nameInputElement = document.createElement('input');
+
   bflyChunkPrompt = document.createElement('label');
   bflyChunkInput = document.createElement('input');
+
+  bflyResPrompt = document.createElement('label');
+  bflyResInput = document.createElement('input');
+
+  bflySizePrompt = document.createElement('label');
+  bflySizeInput = document.createElement('input');
+
+  bflyDatapathPrompt = document.createElement('label');
+  bflyDatapathInput = document.createElement('input');
+
+  bflyOffsetPrompt = document.createElement('label');
+  bflyOffsetInput = document.createElement('input');
 
   volumePromise: Promise<void>|undefined;
   sourceValid: boolean = false;
@@ -99,22 +113,44 @@ export class LayerDialog extends Overlay {
 
     nameInputElement.type = 'text';
 
-
-
     // Single form element.
-    let bflyForm = document.createElement('form');
-    bflyForm.className = 'bfly-form';
-    this.bflyChunkPrompt.textContent = 'Chunk Size:';
-    this.bflyChunkInput.className = 'add-layer-name';
-    this.bflyChunkInput.autocomplete = 'off';
-    this.bflyChunkInput.spellcheck = false;
-    this.bflyChunkInput.type = 'text';
+    let bflyForm1 = document.createElement('form');
+    bflyForm1.className = 'bfly-form';
 
-    bflyForm.appendChild(this.bflyChunkPrompt);
-    bflyForm.appendChild(this.bflyChunkInput);
-    dialogElement.appendChild(bflyForm);
+    let bflyForm2 = document.createElement('form');
+    bflyForm2.className = 'bfly-form';
+    
+    function editFormGroup(domNodePrompt, domNodeInput, promptString: String) {
+      domNodePrompt.textContent = promptString;
+      domNodeInput.className = 'add-layer-name';
+      domNodeInput.autocomplete = 'off';
+      domNodeInput.spellcheck = false;
+      domNodeInput.type = 'text'; 
+    }
 
+    editFormGroup(this.bflyChunkPrompt, this.bflyChunkInput, "Chunk Size");
+    editFormGroup(this.bflyOffsetPrompt, this.bflyOffsetInput, "Offset Size");
+    editFormGroup(this.bflyResPrompt, this.bflyResInput, "Resolution");
+    editFormGroup(this.bflySizePrompt, this.bflySizeInput, "Size");
+    editFormGroup(this.bflyDatapathPrompt, this.bflyDatapathInput, "Datapath");
 
+    bflyForm1.appendChild(this.bflyChunkPrompt);
+    bflyForm1.appendChild(this.bflyChunkInput);
+
+    bflyForm1.appendChild(this.bflyOffsetPrompt);
+    bflyForm1.appendChild(this.bflyOffsetInput);
+
+    bflyForm1.appendChild(this.bflyResPrompt);
+    bflyForm1.appendChild(this.bflyResInput);
+
+    bflyForm2.appendChild(this.bflySizePrompt);
+    bflyForm2.appendChild(this.bflySizeInput);
+
+    bflyForm2.appendChild(this.bflyDatapathPrompt);
+    bflyForm2.appendChild(this.bflyDatapathInput);
+
+    dialogElement.appendChild(bflyForm1);
+    dialogElement.appendChild(bflyForm2);
 
     this.registerEventListener(nameInputElement, 'input', () => { this.validateName(); });
 
@@ -164,6 +200,7 @@ export class LayerDialog extends Overlay {
     });
   }
 
+
   isNameValid() {
     let name = this.nameInputElement.value;
     if (name === '') {
@@ -174,6 +211,32 @@ export class LayerDialog extends Overlay {
   }
 
   submit() {
+
+    var that = this;
+
+    // TODO noice ES6 arrow binding :)
+    if (this.isRhoanaSource()) {
+      this.dispatchVolumePromise(function(err){
+        if (!err) {
+
+          
+
+          // Do not call this if all rhoana specific vals are not fullfilled.
+          that.checkValidity();
+        }
+      })
+    }
+
+    that.checkValidity();
+
+  }
+
+  isRhoanaSource() {
+    return this.sourceInput.value.indexOf('butterfly') > -1;
+  }
+
+
+  checkValidity() {
     if (this.sourceValid && this.isNameValid()) {
       if (this.existingLayer) {
         this.existingLayer.name = this.nameInputElement.value;
@@ -227,6 +290,20 @@ export class LayerDialog extends Overlay {
       return;
     }
 
+
+    // Do not check validity of bfly. For now.
+    if (this.isRhoanaSource()) {
+      this.sourceValid = true;
+      this.setInfo(``);
+      this.validityChanged();
+      return;
+    }
+
+    this.dispatchVolumePromise(undefined);
+  }
+
+  dispatchVolumePromise(callback: Function) {
+    let url = this.sourceInput.value;
     this.setInfo('Validating volume source...');
     let volumePromise =
         new Promise<MultiscaleVolumeChunkSource>(resolve => { resolve(getVolume(url)); });
@@ -235,13 +312,16 @@ export class LayerDialog extends Overlay {
       this.setInfo(
           `${VolumeType[source.volumeType].toLowerCase()}: ${source.numChannels}-channel ${DataType[source.dataType].toLowerCase()}`);
       this.validityChanged();
+      callback(false);
     });
     volumePromise.catch((reason: Error) => {
       if (reason === CANCELLED) {
+        // TODO: some return val for err callback bfly. 
         return;
       }
+      callback(true);
       this.setError(reason.message);
-    });
+    });   
   }
 
   setInfo(message: string) {

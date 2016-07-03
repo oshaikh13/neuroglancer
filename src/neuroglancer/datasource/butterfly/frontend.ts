@@ -199,7 +199,7 @@ export function getShardedVolume(baseUrls: string[], path: string) {
     return existingResult;
   }
   
-  debugger;
+  debugger; // We have the response (if bfly)
     // Just for info. Use node.js stub.
   let promise = sendHttpRequest(openShardedHttpRequest(['http://localhost:1337/'], ''), 'json')
     .then(response => new MultiscaleVolumeChunkSource(baseUrls, path, response));
