@@ -11,6 +11,7 @@
     "node": ">=5.9.0"
   },
   "scripts": {
+    "start": "npm run dev-server",
     "generate-code": "node ./config/generate_code.js",
     "build-min": "webpack --config ./config/webpack.min.js",
     "build": "webpack --config ./config/webpack.config.js",

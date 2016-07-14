@@ -192,6 +192,7 @@ export function getShardedMeshSource(chunkManager: ChunkManager, baseUrls: strin
 
 export function getMeshSource(chunkManager: ChunkManager, url: string, lod: number) {
   const [baseUrls, path] = parseSpecialUrl(url);
+
   return getShardedMeshSource(chunkManager, baseUrls, path, lod);
 }
 
@@ -203,7 +204,7 @@ export function getShardedVolume(baseUrls: string[], path: string) {
     return existingResult;
   }
   
-  let response = getResponseForm();
+  let response = getResponseForm(baseUrls, path);
 
   // Dumb promise wrapper
   let promise = new Promise(function(resolve, reject){
@@ -214,15 +215,29 @@ export function getShardedVolume(baseUrls: string[], path: string) {
   return promise;
 }
 
-function getResponseForm() {
+function getResponseForm(baseUrls, pathgtft567o90p) {
   // TODO: Default vals
   // let somevar = getDom || default val
   // maybe value = undef
-  debugger;
-  let chunkSize = document.getElementsByClassName('bfly-chunksize')[0].value.split('x');
-  let resolution = document.getElementsByClassName('bfly-resolution')[0].value.split('x');
-  let size = document.getElementsByClassName('bfly-size')[0].value.split('x');
-  let offsetsize = document.getElementsByClassName('bfly-offsetsize')[0].value.split('x');
+
+  function getMeta(url, cb){   
+      var img = new Image();
+      img.addEventListener("load", cb);
+      img.src = url;
+  }
+
+  let chunkSize = document.getElementsByClassName('bfly-chunksize')[0].value || "512x512x1";
+  chunkSize = chunkSize.split('x');
+
+  let resolution = document.getElementsByClassName('bfly-resolution')[0].value || "128x128x100";
+  resolution = resolution.split('x');
+
+  let size = document.getElementsByClassName('bfly-size')[0].value || "1024x1024x100";
+  size = size.split('x');
+
+  let offsetsize = document.getElementsByClassName('bfly-offsetsize')[0].value || "0x0x0";
+  offsetsize = offsetsize.split('x');
+
   let datapath = document.getElementsByClassName('bfly-datapath')[0].value.split('x');
 
   let emulatedServerResponse = {
@@ -243,6 +258,8 @@ function getResponseForm() {
     ],
     "type": "image"
   }
+
+  debugger;
 
   // Hacky. TODO: Don't use window
   bflyGlobal.datapath = datapath;
