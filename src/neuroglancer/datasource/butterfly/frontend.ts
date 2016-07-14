@@ -238,7 +238,7 @@ function getResponseForm(baseUrls, pathgtft567o90p) {
   let offsetsize = document.getElementsByClassName('bfly-offsetsize')[0].value || "0x0x0";
   offsetsize = offsetsize.split('x');
 
-  let datapath = document.getElementsByClassName('bfly-datapath')[0].value.split('x');
+  let datapath = [document.getElementsByClassName('bfly-datapath')[0].value];
 
   let emulatedServerResponse = {
     "datapath": datapath,
