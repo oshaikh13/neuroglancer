@@ -37,6 +37,9 @@ import {removeChildren} from 'neuroglancer/util/dom';
 import {Mat4, Quat, quat} from 'neuroglancer/util/geom';
 import {GlobalKeyboardShortcutHandler, KeySequenceMap} from 'neuroglancer/util/keyboard_shortcut_handler';
 import {ViewerState} from 'neuroglancer/viewer_state';
+
+import {BflyState} from 'neuroglancer/bfly_state';
+
 import {RPC} from 'neuroglancer/worker_rpc';
 import {Signal} from 'signals';
 
@@ -197,7 +200,6 @@ export class Viewer extends RefCounted implements ViewerState {
       return false;
     });
 
-
     registerTrackable('layers', this.layerSpecification);
     registerTrackable('navigation', this.navigationState);
     registerTrackable('showAxisLines', this.showAxisLines);
@@ -207,6 +209,7 @@ export class Viewer extends RefCounted implements ViewerState {
     registerTrackable('perspectiveZoom', this.perspectiveNavigationState.zoomFactor);
     registerTrackable('showSlices', this.showPerspectiveSliceViews);
     registerTrackable('layout', this.layoutName);
+
 
     this.registerSignalBinding(
         this.navigationState.changed.add(this.handleNavigationStateChanged, this));

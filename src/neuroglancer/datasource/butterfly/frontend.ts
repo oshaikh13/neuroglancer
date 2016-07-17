@@ -24,6 +24,9 @@ import {vec3, Vec3} from 'neuroglancer/util/geom';
 import {parseFiniteVec, parseIntVec, parseArray, stableStringify} from 'neuroglancer/util/json';
 import {openShardedHttpRequest, sendHttpRequest, parseSpecialUrl} from 'neuroglancer/util/http_request';
 
+import {registerTrackable, currentHashState, Trackable} from 'neuroglancer/url_hash_state';
+import {Signal} from 'signals';
+
 let serverDataTypes = new Map<string, DataType>();
 serverDataTypes.set('uint8', DataType.UINT8);
 serverDataTypes.set('uint32', DataType.UINT32);
@@ -38,6 +41,48 @@ serverChunkEncodings.set('raw', VolumeChunkEncoding.RAW);
 serverChunkEncodings.set('jpeg', VolumeChunkEncoding.JPEG);
 serverChunkEncodings.set('compressed_segmentation', VolumeChunkEncoding.COMPRESSED_SEGMENTATION);
 
+class BflyState implements Trackable {
+
+  changed = new Signal();
+
+  chunkSize;
+  resolution;
+  size;
+  offsetsize;
+  datapath;
+
+  constructor (chunkSize, resolution, size, offsetsize, datapath) {
+    this.chunkSize = chunkSize;
+    this.resolution = resolution;
+    this.size = size; 
+    this.offsetsize = offsetsize;
+    this.datapath = datapath;
+  }
+
+  restoreState (obj) {
+
+    this.chunkSize = obj['chunkSize'];
+    this.resolution = obj['resolution'];
+    this.size = obj['size'];
+    this.offsetsize = obj['offsetsize'];
+    this.datapath = obj['datapath'];
+
+    return;
+  }
+
+  toJSON () {
+    var res = {};
+
+    res.chunkSize = this.chunkSize;
+    res.resolution = this.resolution;
+    res.size = this.size;
+    res.offsetsize = this.offsetsize;
+    res.datapath = this.datapath;
+
+    return res;
+  }
+
+}
 
 export class VolumeChunkSource extends GenericVolumeChunkSource {
   constructor(
@@ -220,25 +265,43 @@ function getResponseForm(baseUrls, pathgtft567o90p) {
   // let somevar = getDom || default val
   // maybe value = undef
 
-  function getMeta(url, cb){   
-      var img = new Image();
-      img.addEventListener("load", cb);
-      img.src = url;
+  let chunkSize;
+  let resolution;
+  let size;
+  let offsetsize;
+  let datapath;
+
+  let stateBfly = currentHashState.bfly_state;
+
+  if (stateBfly) {
+
+    chunkSize = stateBfly.chunkSize;
+    resolution = stateBfly.resolution;
+    size = stateBfly.size;
+    offsetsize = stateBfly.offsetsize;
+    datapath = stateBfly.datapath;
+
+
+  } else {
+    chunkSize = document.getElementsByClassName('bfly-chunksize')[0].value || "512x512x1";
+    chunkSize = chunkSize.split('x');
+
+    resolution = document.getElementsByClassName('bfly-resolution')[0].value || "128x128x100";
+    resolution = resolution.split('x');
+
+    size = document.getElementsByClassName('bfly-size')[0].value || "1024x1024x100";
+    size = size.split('x');
+
+    offsetsize = document.getElementsByClassName('bfly-offsetsize')[0].value || "0x0x0";
+    offsetsize = offsetsize.split('x');
+
+    datapath = [document.getElementsByClassName('bfly-datapath')[0].value];
+
+    registerTrackable('bfly_state', new BflyState(chunkSize, resolution, size, offsetsize, datapath));
   }
 
-  let chunkSize = document.getElementsByClassName('bfly-chunksize')[0].value || "512x512x1";
-  chunkSize = chunkSize.split('x');
-
-  let resolution = document.getElementsByClassName('bfly-resolution')[0].value || "128x128x100";
-  resolution = resolution.split('x');
-
-  let size = document.getElementsByClassName('bfly-size')[0].value || "1024x1024x100";
-  size = size.split('x');
-
-  let offsetsize = document.getElementsByClassName('bfly-offsetsize')[0].value || "0x0x0";
-  offsetsize = offsetsize.split('x');
-
-  let datapath = [document.getElementsByClassName('bfly-datapath')[0].value];
+  // GET AND SET URL SPEC.
+  debugger;
 
   let emulatedServerResponse = {
     "datapath": datapath,

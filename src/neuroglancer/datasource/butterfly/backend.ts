@@ -52,7 +52,6 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
   download(chunk: VolumeChunk) {
 
     let newPath: string;
-    debugger;
     {
       // chunkPosition must not be captured, since it will be invalidated by the next call to
       // computeChunkBounds.

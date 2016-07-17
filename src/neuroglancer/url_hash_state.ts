@@ -40,6 +40,7 @@ export interface Trackable {
 
 function updateTrackedObjectsFromHash() {
   // console.log("updateTrackedObjectsFromHash called");
+  debugger;
   try {
     let s = location.href.replace(/^[^#]+/, '');
     // console.log(`hash str: ${s}`);
@@ -59,6 +60,7 @@ function updateTrackedObjectsFromHash() {
       if (typeof state === 'object') {
         updateTrackedObjects(state);
       }
+      debugger;
     } else {
       lastHash = null;
     }
@@ -69,6 +71,7 @@ function updateTrackedObjectsFromHash() {
 }
 
 function restoreObjectState(key: string, obj: Trackable) {
+  debugger;
   try {
     updatingObject = obj;
     obj.restoreState(currentHashState[key]);
@@ -125,11 +128,13 @@ function updateHash() {
     if (newHash !== lastHash) {
       lastHash = newHash;
       // console.log(`replaceState at ${Date.now()}`);
+      debugger;
       if (lastHash === '{}') {
         history.replaceState(null, null, '#');
       } else {
         history.replaceState(null, null, '#!' + lastHash);
       }
+      debugger;
       // console.log(`replaceState done at ${Date.now()}`);
     }
     // window.location.hash = lastHash;
@@ -150,6 +155,8 @@ function handleObjectUpdate(this: Trackable) {
 }
 
 export function registerTrackable(key: string, obj: Trackable) {
+  debugger;
+
   if (trackedKeys.has(key)) {
     throw new Error(`Key ${JSON.stringify(key)} already registered.`);
   }
@@ -187,3 +194,5 @@ export function unregisterTrackable(keyOrObject: string | Trackable) {
 
 // Initialize currentHashState.
 updateTrackedObjectsFromHash();
+
+export { trackedObjects, currentHashState };
