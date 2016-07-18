@@ -20,6 +20,9 @@ import {vec3, Vec3} from 'neuroglancer/util/geom';
 export function decodeJpegStack(data: Uint8Array, chunkDataSize: Vec3) {
   let parser = new JpegDecoder();
   parser.parse(data);
+
+  debugger;
+
   if (parser.numComponents !== 1) {
     throw new Error('JPEG data does not have the expected number of components');
   }

@@ -45,41 +45,34 @@ class BflyState implements Trackable {
 
   changed = new Signal();
 
-  chunkSize;
-  resolution;
-  size;
-  offsetsize;
-  datapath;
+  store;
 
-  constructor (chunkSize, resolution, size, offsetsize, datapath) {
-    this.chunkSize = chunkSize;
-    this.resolution = resolution;
-    this.size = size; 
-    this.offsetsize = offsetsize;
-    this.datapath = datapath;
+  constructor () {
+
+  }
+
+  add (url, chunkSize, resolution, size, offsetsize, datapath, segmentation) {
+    if (!this.store) this.store = {};
+    if (!this.store[url]) this.store[url] = {};
+    this.store[url].chunkSize = chunkSize;
+    this.store[url].resolution = resolution;
+    this.store[url].size = size; 
+    this.store[url].offsetsize = offsetsize;
+    this.store[url].datapath = datapath;
+    this.store[url].segmentation = segmentation;
   }
 
   restoreState (obj) {
-
-    this.chunkSize = obj['chunkSize'];
-    this.resolution = obj['resolution'];
-    this.size = obj['size'];
-    this.offsetsize = obj['offsetsize'];
-    this.datapath = obj['datapath'];
-
+    this.store = obj;
     return;
   }
 
+  get (url) {
+    return this.store[url];
+  }
+
   toJSON () {
-    var res = {};
-
-    res.chunkSize = this.chunkSize;
-    res.resolution = this.resolution;
-    res.size = this.size;
-    res.offsetsize = this.offsetsize;
-    res.datapath = this.datapath;
-
-    return res;
+    return this.store;
   }
 
 }
@@ -87,14 +80,15 @@ class BflyState implements Trackable {
 export class VolumeChunkSource extends GenericVolumeChunkSource {
   constructor(
     chunkManager: ChunkManager, spec: VolumeChunkSpecification, public baseUrls: string[]|string, public path: string,
-    public encoding: VolumeChunkEncoding, public datapath: string) {
+    public encoding: VolumeChunkEncoding, public datapath: string, public segmentation: boolean) {
     super(chunkManager, spec);
     this.initializeCounterpart(chunkManager.rpc, {
       'type': 'butterfly/VolumeChunkSource',
       'baseUrls': baseUrls,
       'path': path,
       'encoding': encoding,
-      'datapath': datapath
+      'datapath': datapath,
+      'segmentation': segmentation
     });
   }
 
@@ -145,6 +139,7 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
   volumeType: VolumeType;
   mesh: string|undefined;
   scales: ScaleInfo[];
+  segmentation: boolean;
 
   getMeshSource (chunkManager: ChunkManager) {
     let {mesh} = this;
@@ -158,6 +153,7 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
     if (typeof response !== 'object' || Array.isArray(response)) {
       throw new Error('Failed to parse volume metadata.');
     }
+
     let dataTypeStr = response['data_type'];
     let dataType = serverDataTypes.get(dataTypeStr);
     if (dataType === undefined) {
@@ -182,6 +178,7 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
     }
 
     this.datapath = response['datapath'];
+    this.segmentation = response['segmentation'];
 
     this.mesh = meshStr;
     this.scales = parseArray(response['scales'], x => new ScaleInfo(x));
@@ -208,10 +205,11 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
               'path': path,
               'encoding': scaleInfo.encoding
             });
+
             return chunkManager.getChunkSource(
                 VolumeChunkSource, cacheKey,
                 () => new VolumeChunkSource(
-                    chunkManager, spec, this.baseUrls, path, scaleInfo.encoding, this.datapath));
+                    chunkManager, spec, this.baseUrls, path, scaleInfo.encoding, this.datapath, this.segmentation));
           });
     });
   }
@@ -245,11 +243,14 @@ let existingVolumes = new Map<string, Promise<MultiscaleVolumeChunkSource>>();
 export function getShardedVolume(baseUrls: string[], path: string) {
   let fullKey = stableStringify({'baseUrls': baseUrls, 'path': path});
   let existingResult = existingVolumes.get(fullKey);
+
+
+
   if (existingResult !== undefined) {
     return existingResult;
   }
   
-  let response = getResponseForm(baseUrls, path);
+  let response = getResponseForm(baseUrls, baseUrls[0]);
 
   // Dumb promise wrapper
   let promise = new Promise(function(resolve, reject){
@@ -260,7 +261,7 @@ export function getShardedVolume(baseUrls: string[], path: string) {
   return promise;
 }
 
-function getResponseForm(baseUrls, pathgtft567o90p) {
+function getResponseForm(baseUrls, fullKey) {
   // TODO: Default vals
   // let somevar = getDom || default val
   // maybe value = undef
@@ -270,38 +271,53 @@ function getResponseForm(baseUrls, pathgtft567o90p) {
   let size;
   let offsetsize;
   let datapath;
+  let segmentation;
+  let type;
 
   let stateBfly = currentHashState.bfly_state;
 
-  if (stateBfly) {
+
+  if (stateBfly && stateBfly[fullKey]) {
+    stateBfly = stateBfly[fullKey];
 
     chunkSize = stateBfly.chunkSize;
     resolution = stateBfly.resolution;
     size = stateBfly.size;
     offsetsize = stateBfly.offsetsize;
     datapath = stateBfly.datapath;
-
+    segmentation = stateBfly.segmentation;
 
   } else {
     chunkSize = document.getElementsByClassName('bfly-chunksize')[0].value || "512x512x1";
     chunkSize = chunkSize.split('x');
 
-    resolution = document.getElementsByClassName('bfly-resolution')[0].value || "128x128x100";
+    resolution = document.getElementsByClassName('bfly-resolution')[0].value || "128x128x74";
     resolution = resolution.split('x');
 
-    size = document.getElementsByClassName('bfly-size')[0].value || "1024x1024x100";
+    size = document.getElementsByClassName('bfly-size')[0].value || "1024x1024x74";
     size = size.split('x');
 
     offsetsize = document.getElementsByClassName('bfly-offsetsize')[0].value || "0x0x0";
     offsetsize = offsetsize.split('x');
 
+    segmentation = document.getElementsByClassName('bfly-segmentation')[0].checked;
+
+    debugger;
+
     datapath = [document.getElementsByClassName('bfly-datapath')[0].value];
 
-    registerTrackable('bfly_state', new BflyState(chunkSize, resolution, size, offsetsize, datapath));
+    var newState = new BflyState();
+    newState.add(fullKey, chunkSize, resolution, size, offsetsize, datapath, segmentation);
+
+    registerTrackable('bfly_state', newState);
+
   }
 
-  // GET AND SET URL SPEC.
-  debugger;
+  if (segmentation) {
+    type = "segmentation";
+  } else {
+    type = 'image';
+  }
 
   let emulatedServerResponse = {
     "datapath": datapath,
@@ -319,14 +335,11 @@ function getResponseForm(baseUrls, pathgtft567o90p) {
         "voxel_offset": offsetsize
       }
     ],
-    "type": "image"
+    "type": "image",
+    "segmentation": segmentation
   }
 
   debugger;
-
-  // Hacky. TODO: Don't use window
-  bflyGlobal.datapath = datapath;
-
   return emulatedServerResponse;
 }
 

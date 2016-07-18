@@ -68,6 +68,8 @@ export function pickShard(baseUrls: string|string[], path: string) {
 export function openShardedHttpRequest(baseUrls: string|string[], path: string, method = 'GET') {
   let xhr = new XMLHttpRequest();
   const url = pickShard(baseUrls, path);
+  console.log("GET");
+  console.log(baseUrls[0] + path);
   (<any>xhr)[METHOD_SYMBOL] = method;
   (<any>xhr)[URL_SYMBOL] = url;
   xhr.open(method, url);

@@ -53,6 +53,9 @@ export class LayerDialog extends Overlay {
   bflyOffsetPrompt = document.createElement('label');
   bflyOffsetInput = document.createElement('input');
 
+  bflyIsSegmentationPrompt = document.createElement('label');
+  bflyIsSegmentationInput = document.createElement('input');
+
   volumePromise: Promise<void>|undefined;
   sourceValid: boolean = false;
   nameValid: boolean = true;
@@ -120,12 +123,17 @@ export class LayerDialog extends Overlay {
     let bflyForm2 = document.createElement('form');
     bflyForm2.className = 'bfly-form';
     
-    function editFormGroup(domNodePrompt, domNodeInput, promptString: String) {
+    function editFormGroup(domNodePrompt, domNodeInput, promptString: String, checkbox?) {
       domNodePrompt.textContent = promptString;
       domNodeInput.className = 'add-layer-name bfly-' + promptString.toLowerCase().replace(" ", "");
       domNodeInput.autocomplete = 'off';
       domNodeInput.spellcheck = false;
-      domNodeInput.type = 'text'; 
+
+      if (checkbox) {
+        domNodeInput.type = 'checkbox';
+      } else {
+        domNodeInput.type = 'text';
+      }
 
     }
 
@@ -134,6 +142,8 @@ export class LayerDialog extends Overlay {
     editFormGroup(this.bflyResPrompt, this.bflyResInput, "Resolution");
     editFormGroup(this.bflySizePrompt, this.bflySizeInput, "Size");
     editFormGroup(this.bflyDatapathPrompt, this.bflyDatapathInput, "Datapath");
+    editFormGroup(this.bflyIsSegmentationPrompt, this.bflyIsSegmentationInput, "Segmentation", true);
+
 
     bflyForm1.appendChild(this.bflyChunkPrompt);
     bflyForm1.appendChild(this.bflyChunkInput);
@@ -149,6 +159,9 @@ export class LayerDialog extends Overlay {
 
     bflyForm2.appendChild(this.bflyDatapathPrompt);
     bflyForm2.appendChild(this.bflyDatapathInput);
+
+    bflyForm2.appendChild(this.bflyIsSegmentationPrompt);
+    bflyForm2.appendChild(this.bflyIsSegmentationInput);
 
     dialogElement.appendChild(bflyForm1);
     dialogElement.appendChild(bflyForm2);
