@@ -48,7 +48,7 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
     this.chunkDecoder = chunkDecoders.get(this.encoding);
     this.datapath = options['datapath'];
     this.segmentation = options['segmentation'];
-    debugger;
+
   }
 
   download(chunk: VolumeChunk) {
@@ -65,7 +65,7 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
       debugger;
       
       if (this.segmentation) {
-        newPath += '&segmentation=y&segcolor=y';
+        newPath += '&segmentation=y&segcolor=n';
       }
 
     }

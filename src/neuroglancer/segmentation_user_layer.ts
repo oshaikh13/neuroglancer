@@ -47,8 +47,9 @@ export class SegmentationUserLayer extends UserLayer implements SegmentationDisp
   meshLayer: MeshLayer|undefined;
   wasDisposed = false;
 
-  constructor(public manager: LayerListSpecification, x: any) {
+  constructor(public manager: LayerListSpecification, x: any, name) {
     super([]);
+    debugger;
     this.visibleSegments = Uint64Set.makeWithCounterpart(manager.worker);
     this.visibleSegments.changed.add(() => { this.specificationChanged.dispatch(); });
     this.segmentSelectionState.bindTo(manager.layerSelectedValues, this);
@@ -62,7 +63,7 @@ export class SegmentationUserLayer extends UserLayer implements SegmentationDisp
     let meshPath = this.meshPath = verifyOptionalString(x['mesh']);
     let skeletonsPath = this.skeletonsPath = verifyOptionalString(x['skeletons']);
     if (volumePath !== undefined) {
-      let volumePromise = getVolumeWithStatusMessage(volumePath);
+      let volumePromise = getVolumeWithStatusMessage(volumePath, name);
       volumePromise.then(volume => {
         if (!this.wasDisposed) {
           if (!this.meshLayer) {

@@ -48,11 +48,10 @@ class BflyState implements Trackable {
   store;
 
   constructor () {
-
+    this.store = {};
   }
 
   add (url, chunkSize, resolution, size, offsetsize, datapath, segmentation) {
-    if (!this.store) this.store = {};
     if (!this.store[url]) this.store[url] = {};
     this.store[url].chunkSize = chunkSize;
     this.store[url].resolution = resolution;
@@ -60,6 +59,11 @@ class BflyState implements Trackable {
     this.store[url].offsetsize = offsetsize;
     this.store[url].datapath = datapath;
     this.store[url].segmentation = segmentation;
+  }
+
+  load (obj) {
+    this.loaded = true;
+    this.restoreState(obj);
   }
 
   restoreState (obj) {
@@ -76,6 +80,10 @@ class BflyState implements Trackable {
   }
 
 }
+
+var bflyState = new BflyState();
+
+registerTrackable('bfly_state', bflyState);
 
 export class VolumeChunkSource extends GenericVolumeChunkSource {
   constructor(
@@ -240,28 +248,26 @@ export function getMeshSource(chunkManager: ChunkManager, url: string, lod: numb
 }
 
 let existingVolumes = new Map<string, Promise<MultiscaleVolumeChunkSource>>();
-export function getShardedVolume(baseUrls: string[], path: string) {
+export function getShardedVolume(baseUrls: string[], path: string, name) {
   let fullKey = stableStringify({'baseUrls': baseUrls, 'path': path});
-  let existingResult = existingVolumes.get(fullKey);
-
-
+  let existingResult = existingVolumes.get(name);
 
   if (existingResult !== undefined) {
     return existingResult;
   }
   
-  let response = getResponseForm(baseUrls, baseUrls[0]);
+  let response = getResponseForm(baseUrls, baseUrls[0], name);
 
   // Dumb promise wrapper
   let promise = new Promise(function(resolve, reject){
     resolve(new MultiscaleVolumeChunkSource(baseUrls, path, response));
   });
 
-  existingVolumes.set(fullKey, promise);
+  existingVolumes.set(name, promise);
   return promise;
 }
 
-function getResponseForm(baseUrls, fullKey) {
+function getResponseForm(baseUrls, fullKey, name) {
   // TODO: Default vals
   // let somevar = getDom || default val
   // maybe value = undef
@@ -276,18 +282,19 @@ function getResponseForm(baseUrls, fullKey) {
 
   let stateBfly = currentHashState.bfly_state;
 
+  let localState = bflyState.get(name);
 
-  if (stateBfly && stateBfly[fullKey]) {
-    stateBfly = stateBfly[fullKey];
-
-    chunkSize = stateBfly.chunkSize;
-    resolution = stateBfly.resolution;
-    size = stateBfly.size;
-    offsetsize = stateBfly.offsetsize;
-    datapath = stateBfly.datapath;
-    segmentation = stateBfly.segmentation;
+  if (localState) {
+    
+    chunkSize = localState.chunkSize;
+    resolution = localState.resolution;
+    size = localState.size;
+    offsetsize = localState.offsetsize;
+    datapath = localState.datapath;
+    segmentation = localState.segmentation;
 
   } else {
+
     chunkSize = document.getElementsByClassName('bfly-chunksize')[0].value || "512x512x1";
     chunkSize = chunkSize.split('x');
 
@@ -302,14 +309,12 @@ function getResponseForm(baseUrls, fullKey) {
 
     segmentation = document.getElementsByClassName('bfly-segmentation')[0].checked;
 
-    debugger;
-
     datapath = [document.getElementsByClassName('bfly-datapath')[0].value];
+    name = document.getElementById('layer-name').value;
 
-    var newState = new BflyState();
-    newState.add(fullKey, chunkSize, resolution, size, offsetsize, datapath, segmentation);
+    bflyState.add(name, chunkSize, resolution, size, offsetsize, datapath, segmentation);
 
-    registerTrackable('bfly_state', newState);
+    bflyState.changed.dispatch();
 
   }
 
@@ -335,17 +340,16 @@ function getResponseForm(baseUrls, fullKey) {
         "voxel_offset": offsetsize
       }
     ],
-    "type": "image",
+    "type": type,
     "segmentation": segmentation
   }
-
   debugger;
   return emulatedServerResponse;
 }
 
-export function getVolume(url: string) {
+export function getVolume(url: string, name) {
   const [baseUrls, path] = parseSpecialUrl(url);
-  return getShardedVolume(baseUrls, path);
+  return getShardedVolume(baseUrls, path, name);
 }
 
 registerDataSourceFactory('butterfly', {

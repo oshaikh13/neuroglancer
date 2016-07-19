@@ -111,6 +111,7 @@ export class LayerDialog extends Overlay {
     nameForm.className = 'name-form';
     namePromptElement.textContent = 'Name:';
     nameInputElement.className = 'add-layer-name';
+    nameInputElement.id = "layer-name"
     nameInputElement.autocomplete = 'off';
     nameInputElement.spellcheck = false;
 

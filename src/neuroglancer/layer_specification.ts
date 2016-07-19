@@ -29,8 +29,8 @@ import {VoxelSize} from 'neuroglancer/navigation_state';
 import {StatusMessage} from 'neuroglancer/status';
 import {verifyObject, verifyObjectProperty, verifyOptionalString} from 'neuroglancer/util/json';
 
-export function getVolumeWithStatusMessage(x: string): Promise<MultiscaleVolumeChunkSource> {
-  return StatusMessage.forPromise(new Promise(function(resolve) { resolve(getVolume(x)); }), {
+export function getVolumeWithStatusMessage(x: string, name): Promise<MultiscaleVolumeChunkSource> {
+  return StatusMessage.forPromise(new Promise(function(resolve) { resolve(getVolume(x, name)); }), {
     initialMessage: `Retrieving metadata for volume ${x}.`,
     delay: true,
     errorPrefix: `Error retrieving metadata for volume ${x}: `,
@@ -96,7 +96,7 @@ export class LayerListSpecification extends RefCounted implements Trackable {
       if (sourceUrl === undefined) {
         throw new Error(`Either layer 'type' or 'source' URL must be specified.`);
       }
-      let volumeSourcePromise = getVolumeWithStatusMessage(sourceUrl);
+      let volumeSourcePromise = getVolumeWithStatusMessage(sourceUrl, name);
       volumeSourcePromise.then(source => {
         if (this.layerManager.managedLayers.indexOf(managedLayer) === -1) {
           // Layer was removed before promise became ready.
@@ -104,11 +104,11 @@ export class LayerListSpecification extends RefCounted implements Trackable {
         }
         switch (source.volumeType) {
           case VolumeType.IMAGE: {
-            let userLayer = new ImageUserLayer(this, spec);
+            let userLayer = new ImageUserLayer(this, spec, name);
             managedLayer.layer = userLayer;
           } break;
           case VolumeType.SEGMENTATION: {
-            let userLayer = new SegmentationUserLayer(this, spec);
+            let userLayer = new SegmentationUserLayer(this, spec, name);
             managedLayer.layer = userLayer;
           } break;
           default:
@@ -117,9 +117,9 @@ export class LayerListSpecification extends RefCounted implements Trackable {
       });
     } else {
       if (layerType === 'image') {
-        managedLayer.layer = new ImageUserLayer(this, spec);
+        managedLayer.layer = new ImageUserLayer(this, spec, name);
       } else if (layerType === 'segmentation') {
-        managedLayer.layer = new SegmentationUserLayer(this, spec);
+        managedLayer.layer = new SegmentationUserLayer(this, spec, name);
       } else {
         throw new Error('Layer type not specified.');
       }

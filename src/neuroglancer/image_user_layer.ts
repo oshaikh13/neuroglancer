@@ -47,8 +47,9 @@ export class ImageUserLayer extends UserLayer {
   opacity = trackableAlphaValue(0.5);
   fragmentMain = getTrackableFragmentMain();
   renderLayer: ImageRenderLayer;
-  constructor(manager: LayerListSpecification, x: any) {
+  constructor(manager: LayerListSpecification, x: any, name) {
     super();
+    debugger;
     let volumePath = x['source'];
     if (typeof volumePath !== 'string') {
       throw new Error('Invalid image layer specification');
@@ -59,7 +60,7 @@ export class ImageUserLayer extends UserLayer {
         this.fragmentMain.changed.add(() => { this.specificationChanged.dispatch(); }));
     this.volumePath = volumePath;
     let renderLayer = new ImageRenderLayer(
-        manager.chunkManager, getVolumeWithStatusMessage(volumePath), this.opacity,
+        manager.chunkManager, getVolumeWithStatusMessage(volumePath, name), this.opacity,
         this.fragmentMain);
     this.renderLayer = renderLayer;
     this.addRenderLayer(renderLayer);

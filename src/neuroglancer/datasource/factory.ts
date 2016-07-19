@@ -62,7 +62,7 @@ export function suggestLayerNameBasedOnSeparator(path: string, separator?: strin
 
 export interface DataSourceFactory {
   description?: string;
-  getVolume?: (path: string) => Promise<MultiscaleVolumeChunkSource>;
+  getVolume?: (path: string, name: string) => Promise<MultiscaleVolumeChunkSource>;
   getMeshSource?: (chunkManager: ChunkManager, path: string, lod: number) => MeshSource;
   getSkeletonSource?: (chunkManager: ChunkManager, path: string) => SkeletonSource;
   volumeCompleter?: (value: string) => CancellablePromise<CompletionResult|null>;
@@ -100,9 +100,9 @@ function getDataSource(url: string): [DataSourceFactory, string, string] {
   return [factory, m[2], dataSource];
 }
 
-export function getVolume(url: string) {
+export function getVolume(url: string, name: string) {
   let [factories, path] = getDataSource(url);
-  return factories.getVolume(path);
+  return factories.getVolume(path, name);
 }
 
 export function getMeshSource(chunkManager: ChunkManager, url: string, lod: number = 0) {
