@@ -148,6 +148,7 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
   mesh: string|undefined;
   scales: ScaleInfo[];
   segmentation: boolean;
+  name: string;
 
   getMeshSource (chunkManager: ChunkManager) {
     let {mesh} = this;
@@ -179,6 +180,7 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
       throw new Error(`Invalid volume type: ${JSON.stringify(volumeTypeStr)}`);
     }
     this.volumeType = volumeType;
+    this.name = response['name'];
 
     let meshStr = response['mesh'];
     if (meshStr !== undefined && typeof meshStr !== 'string') {
@@ -188,11 +190,14 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
     this.datapath = response['datapath'];
     this.segmentation = response['segmentation'];
 
+    debugger;
+
     this.mesh = meshStr;
     this.scales = parseArray(response['scales'], x => new ScaleInfo(x));
   }
 
   getSources(chunkManager: ChunkManager) {
+    console.log("CALLED FOR ");
     return this.scales.map(scaleInfo => {
       return Array
           .from(VolumeChunkSpecification.getDefaults({
@@ -214,8 +219,10 @@ export class MultiscaleVolumeChunkSource implements GenericMultiscaleVolumeChunk
               'encoding': scaleInfo.encoding
             });
 
+            debugger;
+
             return chunkManager.getChunkSource(
-                VolumeChunkSource, cacheKey,
+                this.name, cacheKey,
                 () => new VolumeChunkSource(
                     chunkManager, spec, this.baseUrls, path, scaleInfo.encoding, this.datapath, this.segmentation));
           });
@@ -264,6 +271,7 @@ export function getShardedVolume(baseUrls: string[], path: string, name) {
   });
 
   existingVolumes.set(name, promise);
+  debugger;
   return promise;
 }
 
@@ -326,6 +334,7 @@ function getResponseForm(baseUrls, fullKey, name) {
 
   let emulatedServerResponse = {
     "datapath": datapath,
+    "name": name,
     "data_type": "uint8",
     "num_channels": 1,
     "scales": [

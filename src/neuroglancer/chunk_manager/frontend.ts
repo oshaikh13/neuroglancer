@@ -160,10 +160,12 @@ export class ChunkManager extends SharedObject {
   getChunkSource<T extends ChunkSource> (constructor: any, key: string, getter: () => T) {
     let {chunkSourceCache} = this;
     let sources = chunkSourceCache.get(constructor);
+    debugger;
     if (sources === undefined) {
       sources = new Memoize<string, ChunkSource>();
       chunkSourceCache.set(constructor, sources);
     }
+    debugger;
     return sources.get(key, getter);
   }
 };

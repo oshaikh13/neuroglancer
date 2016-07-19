@@ -42,13 +42,13 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
   constructor(rpc: RPC, options: any) {
     super(rpc, options);
 
+    debugger;
     this.baseUrls = options['baseUrls'];
     this.path = options['path'];
     this.encoding = options['encoding'];
     this.chunkDecoder = chunkDecoders.get(this.encoding);
     this.datapath = options['datapath'];
     this.segmentation = options['segmentation'];
-
   }
 
   download(chunk: VolumeChunk) {
@@ -62,13 +62,15 @@ class VolumeChunkSource extends GenericVolumeChunkSource {
       // Get datapath from global var.
       newPath = `data/?datapath=${this.datapath[0]}&start=${chunkPosition[0]},${chunkPosition[1]},${chunkPosition[2]}&size=${chunkDataSize[0]},${chunkDataSize[1]},${chunkDataSize[2]}&output=jpg`;
 
-      debugger;
       
-      if (this.segmentation) {
-        newPath += '&segmentation=y&segcolor=n';
-      }
 
     }
+
+    if (this.segmentation) {
+      debugger;
+      newPath += '&segmentation=y&segcolor=n';
+    } 
+
     handleChunkDownloadPromise(
         chunk, sendHttpRequest(openShardedHttpRequest(this.baseUrls, newPath), 'arraybuffer'),
         this.chunkDecoder);
